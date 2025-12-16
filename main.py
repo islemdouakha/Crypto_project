@@ -30,5 +30,12 @@ def main():
             f.write(decrypted_bytes)
         print(f"Decrypted file saved as {output_file}")
 
+        try:
+            decrypted_bytes = decrypt_file(encrypted_bytes, args.password)
+        except ValueError as e:
+            print(f"ERROR: {e}")
+            exit(1)
+
+
 if __name__ == "__main__":
     main()

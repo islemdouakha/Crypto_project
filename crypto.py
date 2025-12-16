@@ -41,8 +41,9 @@ def encrypt_file(file_path: str, password: str) -> bytes:
     ciphertext = encryptor.update(plaintext) + encryptor.finalize()
     tag = encryptor.tag
 
-    # Combine salt + nonce + tag + ciphertext
-    return salt + nonce + tag + ciphertext
+    signature = generate_hmac(key, ciphertext)
+    # Combine salt + nonce + tag + signature + ciphertext
+    return salt + nonce + tag + signature + ciphertext
 
 # --------------------------
 # Decryption
@@ -53,11 +54,14 @@ def decrypt_file(encrypted_bytes: bytes, password: str) -> bytes:
     salt = encrypted_bytes[:16]
     nonce = encrypted_bytes[16:28]
     tag = encrypted_bytes[28:44]
-    ciphertext = encrypted_bytes[44:]
+    signature = encrypted_bytes[44:76]
+    ciphertext = encrypted_bytes[76:]
 
     # Derive key
     key = derive_key(password, salt)
 
+    if not verify_hmac(key, ciphertext, signature):
+        raise ValueError("Integrity check failed: HMAC does not match")
     cipher = Cipher(algorithms.AES(key), modes.GCM(nonce, tag), backend=backend)
     decryptor = cipher.decryptor()
     return decryptor.update(ciphertext) + decryptor.finalize()
