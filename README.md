@@ -14,3 +14,16 @@ Encrypt files securely with AES-256 and verify integrity with HMAC.
 python main.py encrypt secret.txt mypassword
 python main.py decrypt secret.txt.enc mypassword
 ```
+## Configurable Security Parameters
+
+The IDS allows adjusting key derivation and AES encryption parameters:
+
+```yaml
+crypto:
+  key_derivation:
+    iterations: 200_000
+    salt_size: 16
+  aes:
+    mode: GCM
+    key_size: 32
+```

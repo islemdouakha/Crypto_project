@@ -3,19 +3,28 @@ from cryptography.hazmat.primitives import hashes, hmac
 from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
 from cryptography.hazmat.backends import default_backend
 import os
+import yaml
+
+with open("config.yaml", "r") as f:
+    config = yaml.safe_load(f)
+
+ITERATIONS = config['crypto']['key_derivation']['iterations']
+SALT_SIZE = config['crypto']['key_derivation']['salt_size']
+AES_MODE = config['crypto']['aes']['mode']
+KEY_SIZE = config['crypto']['aes']['key_size']
 
 backend = default_backend()
 
 # --------------------------
 # Key Derivation
 # --------------------------
-def derive_key(password: str, salt: bytes, iterations=100_000, key_size=32) -> bytes:
+def derive_key(password: str, salt: bytes) -> bytes:
     """Derive a symmetric key from password using PBKDF2"""
     kdf = PBKDF2HMAC(
         algorithm=hashes.SHA256(),
-        length=key_size,
+        length=KEY_SIZE,
         salt=salt,
-        iterations=iterations,
+        iterations=ITERATIONS,
         backend=backend
     )
     return kdf.derive(password.encode())
@@ -35,7 +44,13 @@ def encrypt_file(file_path: str, password: str) -> bytes:
 
     # Generate random nonce
     nonce = os.urandom(12)
-    cipher = Cipher(algorithms.AES(key), modes.GCM(nonce), backend=backend)
+    if AES_MODE == "GCM":
+        cipher = Cipher(algorithms.AES(key), modes.GCM(nonce), backend=backend)
+    elif AES_MODE == "CBC":
+        cipher = Cipher(algorithms.AES(key), modes.CBC(nonce), backend=backend)
+    else:
+        raise ValueError("Unsupported AES mode : {AES_MODE}")
+        
     encryptor = cipher.encryptor()
 
     ciphertext = encryptor.update(plaintext) + encryptor.finalize()

@@ -1,7 +1,7 @@
 crypto:
   key_derivation:
-    iterations: 100_000
-    salt_size: 16  # bytes
+    iterations: 200_000   # PBKDF2 iterations (increase security)
+    salt_size: 16
   aes:
-    mode: GCM
-    key_size: 32   # bytes, AES-256
+    mode: GCM             # AES mode: GCM or CBC
+    key_size: 32          # AES-256 (32 bytes)
