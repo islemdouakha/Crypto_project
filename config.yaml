@@ -1,0 +1,7 @@
+crypto:
+  key_derivation:
+    iterations: 100_000
+    salt_size: 16  # bytes
+  aes:
+    mode: GCM
+    key_size: 32   # bytes, AES-256
